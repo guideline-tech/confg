@@ -1,8 +1,7 @@
 require 'conf/version'
+require 'conf/configuration'
 
 module Conf
-
-  autoload :Configuration, 'conf/configuration'
 
   class << self
 
