@@ -28,6 +28,14 @@ module Conf
       self.set(key, value)
     end
 
+    def tmp(key, value)
+      initial = self[key]
+      self[key] = value
+      yield
+    ensure
+      self[key] = initial
+    end
+
     def load_key(key)
       # loads yaml file with given key
       load_yaml(key, key)
