@@ -3,14 +3,21 @@ require 'conf/configuration'
 
 module Conf
 
+  DEFAULT_OPTS = {
+    raise_error_on_miss: false,
+    env: nil,
+  }.freeze
+
   class << self
 
     def root
       @root ||= Pathname.new(calc_root_string).expand_path
     end
 
-    def configure(raise_on_missed_key = false)
-      @configuration ||= ::Conf::Configuration.new(raise_on_missed_key)
+    def configure(opts = {})
+      opts = DEFAULT_OPTS.merge(opts)
+
+      @configuration ||= ::Conf::Configuration.new(opts[:raise_error_on_miss], opts[:env])
       yield @configuration if block_given?
       @configuration
     end

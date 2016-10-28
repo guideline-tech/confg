@@ -7,10 +7,10 @@ module Conf
 
     delegate :each, :inspect, :to => :@attributes
 
-    def initialize(raise_error_on_miss = false, parent = nil)
+    def initialize(raise_error_on_miss, env)
       @attributes           = {}
       @raise_error_on_miss  = raise_error_on_miss
-      @parent               = parent
+      @env                  = env
     end
 
     def merge(hash)
@@ -49,7 +49,7 @@ module Conf
 
       raw_content = ERB.new(raw_content).result
       content     = YAML.load(raw_content)
-      content     = content[Rails.env] if content.is_a?(::Hash) && content.has_key?(Rails.env)
+      content     = content[@env] if content.is_a?(::Hash) && @env
 
       if key
         self.set(key, content)
