@@ -1,11 +1,11 @@
 # -*- encoding: utf-8 -*-
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'conf/version'
+require 'confg/version'
 
 Gem::Specification.new do |gem|
-  gem.name          = "conf"
-  gem.version       = Conf::VERSION
+  gem.name          = "confg"
+  gem.version       = Confg::VERSION
   gem.authors       = ["Mike Nelson"]
   gem.email         = ["mike@mnelson.io"]
   gem.description   = %q{Config the pipes}
@@ -17,5 +17,5 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ["lib"]
 
-  gem.add_dependency 'activesupport'
+  gem.add_dependency 'activesupport', '>= 3.0.0'
 end

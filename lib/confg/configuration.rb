@@ -2,7 +2,7 @@ require 'yaml'
 require 'erb'
 require 'active_support/core_ext/module/delegation'
 
-module Conf
+module Confg
   class Configuration
 
     delegate :each, :inspect, :to => :@attributes
@@ -129,10 +129,10 @@ module Conf
 
       to_try = []
       unless path =~ /.yml$/
-        to_try << Conf.root.join("config/#{path}.yml")
+        to_try << Confg.root.join("config/#{path}.yml")
       end
-      to_try << Conf.root.join("config/#{path}")
-      to_try << Conf.root.join(path)
+      to_try << Confg.root.join("config/#{path}")
+      to_try << Confg.root.join(path)
 
       to_try.each do |file|
         return file if File.file?(file)

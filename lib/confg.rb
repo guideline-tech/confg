@@ -1,7 +1,7 @@
-require 'conf/version'
-require 'conf/configuration'
+require 'confg/version'
+require 'confg/configuration'
 
-module Conf
+module Confg
 
   class << self
 
@@ -10,7 +10,7 @@ module Conf
     end
 
     def configure(raise_on_missed_key = false)
-      @configuration ||= ::Conf::Configuration.new(raise_on_missed_key)
+      @configuration ||= ::Confg::Configuration.new(raise_on_missed_key)
       yield @configuration if block_given?
       @configuration
     end
