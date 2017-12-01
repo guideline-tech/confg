@@ -1,5 +1,3 @@
-require 'yaml'
-require 'erb'
 require 'active_support/core_ext/module/delegation'
 
 module Confg
@@ -47,9 +45,11 @@ module Confg
 
       return unless raw_content
 
-      raw_content = ERB.new(raw_content).result
-      content     = YAML.load(raw_content)
-      content     = content[Rails.env] if content.is_a?(::Hash) && content.has_key?(Rails.env)
+      ctxt = ::Confg::ErbContext.new
+      content = ctxt.evaluate(raw_content)
+
+      env = defined?(Rails) ? Rails.env.to_s : ENV["RAILS_ENV"] || ENV["RACK_ENV"]
+      content = content[Rails.env] if env && content.is_a?(::Hash) && content.has_key?(Rails.env)
 
       if key
         self.set(key, content)

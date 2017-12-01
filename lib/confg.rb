@@ -1,5 +1,6 @@
 require 'confg/version'
 require 'confg/configuration'
+require 'confg/erb_context'
 
 module Confg
 
@@ -7,6 +8,13 @@ module Confg
 
     def root
       @root ||= Pathname.new(calc_root_string).expand_path
+    end
+
+    def erb_function(function_name, &block)
+      ::Confg::ErbContext.class_eval do
+        define_method(function_name, &block)
+      end
+      self
     end
 
     def configure(raise_on_missed_key = false)
