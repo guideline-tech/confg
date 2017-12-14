@@ -18,6 +18,15 @@ module Confg
     end
     alias_method :merge!, :merge
 
+    def to_hash
+      out = @attributes.to_h.dup
+      out.each_pair do |k,v|
+        out[k] = v.to_hash if v.is_a?(self.class)
+      end
+      out
+    end
+    alias_method :to_h, :to_hash
+
     def [](key)
       self.get(key)
     end
@@ -36,10 +45,10 @@ module Confg
 
     def load_key(key)
       # loads yaml file with given key
-      load_yaml(key, key)
+      load_yaml(key, key: key)
     end
 
-    def load_yaml(path, key = nil)
+    def load_yaml(path, key: nil, ignore_env: false)
       path = find_config_yaml(path)
       raw_content = File.open(path, 'r'){|io| io.read } rescue nil
 
@@ -48,8 +57,10 @@ module Confg
       ctxt = ::Confg::ErbContext.new
       content = ctxt.evaluate(raw_content)
 
-      env = defined?(Rails) ? Rails.env.to_s : ENV["RAILS_ENV"] || ENV["RACK_ENV"]
-      content = content[Rails.env] if env && content.is_a?(::Hash) && content.has_key?(Rails.env)
+      unless ignore_env
+        env = defined?(Rails) ? Rails.env.to_s : ENV["RAILS_ENV"] || ENV["RACK_ENV"]
+        content = content[Rails.env] if env && content.is_a?(::Hash) && content.has_key?(Rails.env)
+      end
 
       if key
         self.set(key, content)
