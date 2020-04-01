@@ -1,0 +1,10 @@
+shared: &shared
+  foo: "foo"
+
+production:
+  <<: *shared
+  env_setting: "setting_prod"
+
+test:
+  <<: *shared
+  env_setting: "setting_test"

@@ -1,47 +1,62 @@
-require 'active_support/core_ext/module/delegation'
+# frozen_string_literal: true
+
+require "yaml"
 
 module Confg
-  class Configuration
+  class Configuration < ::SimpleDelegator
 
-    delegate :each, :inspect, :to => :@attributes
+    attr_reader :confg_env, :confg_root
 
-    def initialize(raise_error_on_miss = false, parent = nil)
-      @attributes           = {}
-      @raise_error_on_miss  = raise_error_on_miss
-      @parent               = parent
-    end
+    def initialize(env: Confg.env, root: Confg.root)
+      @confg_env = env.to_s
+      @confg_root = Pathname.new(root)
 
-    def merge(hash)
-      hash.each do |k,v|
-        self.set(k,v)
-      end
-    end
-    alias_method :merge!, :merge
-
-    def to_hash
-      out = @attributes.to_h.dup
-      out.each_pair do |k,v|
-        out[k] = v.to_hash if v.is_a?(self.class)
-      end
-      out
-    end
-    alias_method :to_h, :to_hash
-
-    def [](key)
-      self.get(key)
-    end
-
-    def []=(key, value)
-      self.set(key, value)
+      super({})
     end
 
     def tmp(key, value)
-      initial = self[key]
-      self[key] = value
+      initial = get(key)
+      set(key, value)
       yield
     ensure
-      self[key] = initial
+      set(key, initial)
     end
+
+    def merge(other)
+      other.each_pair do |k, v|
+        set(k, v)
+      end
+    end
+    alias merge! merge
+
+    def to_h
+      __getobj__.transform_values do |v|
+        v.is_a?(self.class) ? v.to_h : v
+      end
+    end
+
+    def get(key)
+      __getobj__[key.to_s]
+    end
+    alias [] get
+
+    def get!(key)
+      __getobj__.fetch(key.to_s)
+    end
+
+    def set(key, value = nil)
+      __getobj__[key.to_s] = case value
+      when ::Hash
+        set_block(key) do |child|
+          value.each_pair do |k, v|
+            child.set(k, v)
+          end
+        end
+      else
+        value
+      end
+    end
+    alias []= set
 
     def load_key(key)
       # loads yaml file with given key
@@ -49,121 +64,84 @@ module Confg
     end
 
     def load_yaml(path, key: nil, ignore_env: false)
-      path = find_config_yaml(path)
-      raw_content = File.open(path, 'r'){|io| io.read } rescue nil
+      found_path = find_config_yaml(path)
 
-      return unless raw_content
+      raise ArgumentError, "#{path} could not be found" if found_path.nil?
 
       ctxt = ::Confg::ErbContext.new
-      content = ctxt.evaluate(raw_content)
+      raw_content = ::File.read(found_path)
+      erb_content = ctxt.evaluate(raw_content)
+      yaml_content = ::YAML.send :load, erb_content
 
       unless ignore_env
-        env = defined?(Rails) ? Rails.env.to_s : ENV["RAILS_ENV"] || ENV["RACK_ENV"]
-        content = content[Rails.env] if env && content.is_a?(::Hash) && content.has_key?(Rails.env)
+        yaml_content = yaml_content[confg_env] if confg_env && yaml_content.is_a?(::Hash) && yaml_content.key?(confg_env)
       end
 
       if key
-        self.set(key, content)
+        set(key, yaml_content)
       else
-        if content.is_a?(Array)
-          raise "A key must be provided to load the file at: #{path}"
+        if yaml_content.is_a?(Array)
+          raise "A key must be provided to load the file at: #{found_path}"
         else
-          content.each do |k,v|
-            self.set(k, v)
+          yaml_content.each do |k, v|
+            set(k, v)
           end
         end
       end
     end
-    alias_method :load_yml, :load_yaml
+    alias load_yml load_yaml
 
     def method_missing(method_name, *args, &block)
-      if method_name.to_s =~ /^(.+)=$/ && !args.empty?
-        self.set($1, args.first)
-      elsif method_name.to_s =~ /^([^=]+)$/
-        if block_given?
-          self.set_block($1, &block)
-        elsif @attributes.respond_to?($1)
-          @attributes.send($1, *args)
-        else
-          self.get($1)
-        end
-      else
+      key = method_name.to_s
+
+      if __getobj__.respond_to?(key)
         super
+      elsif key.end_with?("=") && !args.empty?
+        set(key[0...-1], args[0])
+      elsif block_given?
+        set_block(key, &block)
+      else
+        get!(key)
       end
     end
 
-    def respond_to?(method_name, include_private = false)
+    def respond_to_missing?(*_args)
       true
     end
 
     protected
 
-    def set(key, value = nil)
-      case value
-      when ::Hash
-        set_block key do |inner|
-          value.each do |k,v|
-            inner.set(k, v)
-          end
-        end
-      else
-        @attributes[key.to_s] = value
-      end
-    end
-
-    def get(key)
-      if @attributes.has_key?(key.to_s)
-        @attributes[key.to_s]
-      else
-        get_missing_key(key.to_s)
-      end
-    end
-
-    def get_missing_key(key)
-      if @raise_error_on_miss
-        raise "Missing key: #{key} in #{@attributes.inspect}"
-      else
-        nil
-      end
-    end
-
-    def set_block(key, &block)
-      inner = @attributes[key.to_s] || child_new
-      block.call(inner)
+    def set_block(key)
+      inner = get(key) || spawn_child
+      yield(inner)
       set(key, inner)
     end
 
     def find_config_yaml(path)
       path = path.to_s
       # give it back if it starts with a slash
-      return path if path =~ /^\//
+      if path.start_with?("/")
+        return nil unless ::File.file?(path)
+
+        return path
+      end
 
       to_try = []
-      unless path =~ /.yml$/
-        to_try << Confg.root.join("config/#{path}.yml")
+      unless path.end_with?(".yml")
+        to_try << confg_root.join("config/#{path}.yml")
       end
-      to_try << Confg.root.join("config/#{path}")
-      to_try << Confg.root.join(path)
+      to_try << confg_root.join("config/#{path}")
+      to_try << confg_root.join(path)
 
       to_try.each do |file|
-        return file if File.file?(file)
+        return file.to_s if File.file?(file)
       end
 
-      to_try.first
+      nil
     end
 
-    def child_class
-      # same as ours
-      self.class
-    end
-
-    def child_raise_error_on_miss
-      # same as ours
-      @raise_error_on_miss
-    end
-
-    def child_new
-      child_class.new(child_raise_error_on_miss, self)
+    def spawn_child
+      self.class.new(env: confg_env, root: confg_root)
     end
 
   end
