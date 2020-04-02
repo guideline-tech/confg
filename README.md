@@ -1,33 +1,32 @@
-# Conf
+# Confg
 
-This allows the Conf namespace to provide configuration information
+Provides a utility for loading and managing configurations for your ruby project.
 
 ## Usage
 
-    Conf.configure do |c|
-      c.app_key = 'core'
-      c.app_name = 'core'
+Set specific keys:
+
+    Confg.configure do |c|
+      c.foo_setting = 100
+      c.bar_setting = "yes"
     end
 
-Feel free to nest as well
+Supports nesting:
 
-    Conf.configure do |c|
+    Confg.configure do |c|
       c.api_keys do |a|
-        a.google_places = 'xyz'
+        a.google = 'xyz'
         a.mixpanel = 'abc'
       end
     end
 
-Wanna use yaml files? Cool:
+Load a yaml file:
 
-    Conf.configure do |c|
-      c.load_yaml 'file.yml'
-      c.load_yaml :core
-      c.load_yaml '/path/to/some.yml', :something
+    Confg.configure do |c|
+      c.load_yaml "/path/to/file.yml"
     end
 
-file.yml and core.yml above will be looked for in the Conf.config_dir (which can also be set but defualts to root/config)
-Yaml files can be namespaced by environment as well. Oh, and they can have ERB:
+Yaml files can be namespaced by environment and contain ERB.
 
     ---
       development:
@@ -35,11 +34,21 @@ Yaml files can be namespaced by environment as well. Oh, and they can have ERB:
       staging:
         thing: 'set value'
 
-Ok, using the values:
+Use the values:
 
-    Conf.app_key
-      # => 'core'
-    Conf.api_keys
-     # => #<Config::Configuration:0x007f9655e5ba58 @attributes={"google_places"=>"xyz", "mixpanel"=>"abc"} >
-    Conf.api_keys.google_places
-      # => 'xyz'
+    Confg.foo_setting
+    #=> 100
+
+    Confg.api_keys
+    #=> #<Confg::Configuration { "google" => "xyz", "mixpanel" => "abc" }>
+
+    Confg.api_keys.google # => "xyz"'
+
+    Confg.api_keys.to_h
+    #=> { "google" => "xyz", "mixpanel" => "abc" }
+
+    Confg.missing_key
+    #=> raises KeyError
+
+    Conf[:missing_key]
+    #=> nil
