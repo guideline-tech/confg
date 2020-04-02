@@ -14,6 +14,10 @@ module Confg
       super({})
     end
 
+    def inspect
+      "#<#{self.class.name} #{__getobj__.inspect}>"
+    end
+
     def tmp(key, value)
       initial = get(key)
       set(key, value)
