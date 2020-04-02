@@ -36,18 +36,18 @@ module Confg
     end
 
     def get(key)
-      __getobj__[key.to_s]
+      fetch(key) { nil }
     end
     alias [] get
 
-    def get!(key)
-      __getobj__.fetch(key.to_s)
+    def fetch(key, &block)
+      __getobj__.fetch(key.to_s, &block)
     end
 
     def set(key, value = nil)
       __getobj__[key.to_s] = case value
       when ::Hash
-        set_block(key) do |child|
+        open_block(key) do |child|
           value.each_pair do |k, v|
             child.set(k, v)
           end
@@ -99,9 +99,9 @@ module Confg
       elsif key.end_with?("=") && !args.empty?
         set(key[0...-1], args[0])
       elsif block_given?
-        set_block(key, &block)
+        open_block(key, &block)
       else
-        get!(key)
+        fetch(key)
       end
     end
 
@@ -111,7 +111,7 @@ module Confg
 
     protected
 
-    def set_block(key)
+    def open_block(key)
       inner = get(key) || spawn_child
       yield(inner)
       set(key, inner)
