@@ -8,6 +8,10 @@ module Confg
 
   class << self
 
+    def cache
+      @cache ||= {}
+    end
+
     def root
       return @root if defined?(@root)
 
@@ -27,12 +31,13 @@ module Confg
       self
     end
 
-    def configure
-      @configuration ||= ::Confg::Configuration.new(env: env, root: root)
-      yield @configuration if block_given?
-      @configuration
+    def config(env: self.env, root: self.root)
+      config_key = "#{env}--#{root}"
+      out = (cache[config_key] ||= ::Confg::Configuration.new(env: env, root: root))
+      yield out if block_given?
+      out
     end
-    alias config configure
+    alias configure config
 
     def method_missing(method_name, *args, &block)
       config.send(method_name, *args, &block)
@@ -65,7 +70,7 @@ module Confg
     end
 
     def reset!
-      remove_instance_variable("@configuration") if defined?(@configuration)
+      remove_instance_variable("@cache") if defined?(@cache)
       remove_instance_variable("@env") if defined?(@env)
       remove_instance_variable("@root") if defined?(@root)
     end

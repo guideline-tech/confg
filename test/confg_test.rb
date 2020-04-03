@@ -15,7 +15,7 @@ class ConfgTest < Minitest::Test
   end
 
   def test_a_child_block_can_be_opened
-    config.foo do |child|
+    config.open :foo do |child|
       child.bar = "baz"
     end
 
@@ -63,6 +63,18 @@ class ConfgTest < Minitest::Test
       "production" => { "env_setting" => "setting_prod", "foo" => "foo" },
       "test" => { "env_setting" => "setting_test", "foo" => "foo" },
     }, config.to_h)
+  end
+
+  def test_top_level_configs_are_cached_in_root_namespace
+    ::Confg.send :reset!
+    assert_equal({}, ::Confg.cache)
+
+    default_config = ::Confg.config(env: "test", root: "/")
+    custom_config = ::Confg.config(env: "foobar", root: "/Users/x/")
+
+    refute_equal default_config.object_id, custom_config.object_id
+    assert_equal 2, ::Confg.cache.size
+    assert_equal %w[test--/ foobar--/Users/x/], ::Confg.cache.keys
   end
 
 end

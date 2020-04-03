@@ -3,19 +3,18 @@
 require "yaml"
 
 module Confg
-  class Configuration < ::SimpleDelegator
+  class Configuration
 
-    attr_reader :confg_env, :confg_root
+    attr_reader :confg_env, :confg_root, :confg_data
 
     def initialize(env: Confg.env, root: Confg.root)
       @confg_env = env.to_s
       @confg_root = Pathname.new(root)
-
-      super({})
+      @confg_data = {}
     end
 
     def inspect
-      "#<#{self.class.name} #{__getobj__.inspect}>"
+      "#<#{self.class.name} #{confg_data.inspect}>"
     end
 
     def tmp(key, value)
@@ -34,9 +33,13 @@ module Confg
     alias merge! merge
 
     def to_h
-      __getobj__.transform_values do |v|
+      confg_data.transform_values do |v|
         v.is_a?(self.class) ? v.to_h : v
       end
+    end
+
+    def key?(key)
+      confg_data.key?(key.to_s)
     end
 
     def get(key)
@@ -45,13 +48,13 @@ module Confg
     alias [] get
 
     def fetch(key, &block)
-      __getobj__.fetch(key.to_s, &block)
+      confg_data.fetch(key.to_s, &block)
     end
 
     def set(key, value = nil)
-      __getobj__[key.to_s] = case value
+      confg_data[key.to_s] = case value
       when ::Hash
-        open_block(key) do |child|
+        open(key) do |child|
           value.each_pair do |k, v|
             child.set(k, v)
           end
@@ -61,6 +64,12 @@ module Confg
       end
     end
     alias []= set
+
+    def open(key)
+      inner = get(key) || spawn_child
+      yield(inner)
+      set(key, inner)
+    end
 
     def load_key(key)
       # loads yaml file with given key
@@ -95,31 +104,27 @@ module Confg
     end
     alias load_yml load_yaml
 
-    def method_missing(method_name, *args, &block)
-      key = method_name.to_s
+    def method_missing(key, *args, &block)
+      key = key.to_s
+      return set(key[0...-1], args[0]) if key.end_with?("=")
+      return fetch(key) if key?(key)
 
-      if __getobj__.respond_to?(key)
-        super
-      elsif key.end_with?("=") && !args.empty?
-        set(key[0...-1], args[0])
-      elsif block_given?
-        open_block(key, &block)
-      else
-        fetch(key)
+      begin
+        confg_data.send(key, *args, &block)
+      rescue NoMethodError => e
+        raise KeyError, "Unrecognized key `#{key}`", e.backtrace
       end
     end
 
-    def respond_to_missing?(*_args)
-      true
+    def respond_to_missing?(key, include_private = false)
+      key = key.to_s
+      return true if key.end_with?("=")
+      return true if key?(key)
+
+      confg_data.respond_to?(key, include_private)
     end
 
     protected
-
-    def open_block(key)
-      inner = get(key) || spawn_child
-      yield(inner)
-      set(key, inner)
-    end
 
     def find_config_yaml(path)
       path = path.to_s
