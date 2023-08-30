@@ -84,7 +84,7 @@ module Confg
       ctxt = ::Confg::ErbContext.new
       raw_content = ::File.read(found_path)
       erb_content = ctxt.evaluate(raw_content)
-      yaml_content = ::YAML.send :safe_load, erb_content, aliases: true # due to shared sections
+      yaml_content = ::YAML.send :unsafe_load, erb_content # to support all versions of psych for trusted data
 
       unless ignore_env
         yaml_content = yaml_content[confg_env] if confg_env && yaml_content.is_a?(::Hash) && yaml_content.key?(confg_env)
