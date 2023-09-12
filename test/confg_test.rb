@@ -65,6 +65,21 @@ class ConfgTest < Minitest::Test
     }, config.to_h)
   end
 
+  def test_a_yml_file_doesnt_load_with_additional_permitted_classes
+    assert_raises "Psych::DisallowedClass: Tried to load unspecified class: Symbol" do
+      config.load_yaml("example_with_symbols.yml", ignore_env: true)
+    end
+  end
+
+  def test_a_yml_file_can_be_loaded_with_additional_permitted_classes
+    config.load_yaml("example_with_symbols.yml", { permitted_classes: [Symbol] }, ignore_env: true)
+    assert_equal({
+      "shared" => { "foo" => :foo },
+      "production" => { "env_setting" => :setting_prod, "foo" => :foo },
+      "test" => { "env_setting" => :setting_test, "foo" => :foo },
+    }, config.to_h)
+  end
+
   def test_top_level_configs_are_cached_in_root_namespace
     ::Confg.send :reset!
     assert_equal({}, ::Confg.cache)

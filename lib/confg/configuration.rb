@@ -71,12 +71,12 @@ module Confg
       set(key, inner)
     end
 
-    def load_key(key)
+    def load_key(key,yaml_loader_options = {})
       # loads yaml file with given key
-      load_yaml(key, key: key)
+      load_yaml(key, yaml_loader_options, key: key)
     end
 
-    def load_yaml(path, key: nil, ignore_env: false)
+    def load_yaml(path, yaml_loader_options = {}, key: nil, ignore_env: false)
       found_path = find_config_yaml(path)
 
       raise ArgumentError, "#{path} could not be found" if found_path.nil?
@@ -84,7 +84,7 @@ module Confg
       ctxt = ::Confg::ErbContext.new
       raw_content = ::File.read(found_path)
       erb_content = ctxt.evaluate(raw_content)
-      yaml_content = ::YAML.send :safe_load, erb_content, aliases: true # due to shared sections
+      yaml_content = ::YAML.safe_load(erb_content, **yaml_loader_options.merge(aliases: true)) # due to shared sections
 
       unless ignore_env
         yaml_content = yaml_content[confg_env] if confg_env && yaml_content.is_a?(::Hash) && yaml_content.key?(confg_env)
