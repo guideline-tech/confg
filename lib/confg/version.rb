@@ -2,6 +2,6 @@
 
 module Confg
 
-  VERSION = "2.1.1.rc1"
+  VERSION = "3.0.0"
 
 end

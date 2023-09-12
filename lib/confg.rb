@@ -39,11 +39,11 @@ module Confg
     end
     alias configure config
 
-    def method_missing(method_name, *args, &block)
-      config.send(method_name, *args, &block)
+    def method_missing(method_name, ...)
+      config.send(method_name, ...)
     end
 
-    def respond_to_missing?(*_args)
+    def respond_to_missing?(...)
       true
     end
 

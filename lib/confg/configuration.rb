@@ -104,13 +104,13 @@ module Confg
     end
     alias load_yml load_yaml
 
-    def method_missing(key, *args, &block)
+    def method_missing(key, *args, **kwargs, &block)
       key = key.to_s
       return set(key[0...-1], args[0]) if key.end_with?("=")
       return fetch(key) if key?(key)
 
       begin
-        confg_data.send(key, *args, &block)
+        confg_data.send(key, *args, **kwargs, &block)
       rescue NoMethodError => e
         raise KeyError, "Unrecognized key `#{key}`", e.backtrace
       end
