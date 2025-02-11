@@ -1,11 +1,11 @@
 /.bundle/
 /.yardoc
-/Gemfile.lock
 /_yardoc/
 /coverage/
 /doc/
 /pkg/
 /spec/reports/
+/Gemfile.lock
 /tmp/
 *.bundle
 *.so
