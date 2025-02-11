@@ -2,6 +2,10 @@
 
 module Confg
 
-  VERSION = "3.0.1"
+  MAJOR       = 3
+  MINOR       = 1
+  PATCH       = 0
+  PRERELEASE  = nil
 
+  VERSION = [MAJOR, MINOR, PATCH, PRERELEASE].compact.join(".")
 end

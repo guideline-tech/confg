@@ -13,7 +13,12 @@ Gem::Specification.new do |spec|
   spec.summary       = "Sets shared variables for applications"
   spec.homepage      = ""
 
-  spec.files         = `git ls-files`.split($INPUT_RECORD_SEPARATOR)
+
+  # Specify which files should be added to the gem when it is released.
+  # The `git ls-files -z` loads the files in the RubyGem that have been added into git.
+  spec.files = Dir.chdir(File.expand_path(__dir__)) do
+    `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test)/}) }
+  end
   spec.executables   = spec.files.grep(%r{^bin/}).map { |f| File.basename(f) }
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
@@ -22,4 +27,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "byebug"
   spec.add_development_dependency "minitest", "~> 5.0"
   spec.add_development_dependency "rake"
+
+  spec.required_ruby_version = ">= 3.2.0"
 end
