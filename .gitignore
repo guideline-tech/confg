@@ -5,6 +5,7 @@
 /doc/
 /pkg/
 /spec/reports/
+/Gemfile.lock
 /tmp/
 *.bundle
 *.so
