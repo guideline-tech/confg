@@ -18,8 +18,9 @@ Gem::Specification.new do |spec|
   spec.files = Dir["lib/**/*"] + Dir["*.gemspec"]
 
   spec.executables   = spec.files.grep(%r{^bin/}).map { |f| File.basename(f) }
-  spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
+
+  spec.metadata["allowed_push_host"] = "https://rubygems.org"
 
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "byebug"
