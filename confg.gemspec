@@ -21,6 +21,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.metadata["allowed_push_host"] = "https://rubygems.org"
+  spec.metadata["rubygems_mfa_required"] = "true"
 
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "byebug"
