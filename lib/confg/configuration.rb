@@ -32,6 +32,31 @@ module Confg
     end
     alias merge! merge
 
+    def set_path(path, value)
+      keys = path.to_s.split(".")
+      if keys.length == 1
+        set(keys.first, value)
+      else
+        open(keys.first) do |child|
+          child.set_path(keys[1..].join("."), value)
+        end
+      end
+    end
+
+    def get_path(path)
+      keys = path.to_s.split(".")
+      keys.reduce(self) { |conf, key| conf&.get(key) }
+    end
+
+    def load_env(prefix: "CONFG_", separator: "__")
+      ENV.each do |key, value|
+        next unless key.start_with?(prefix)
+
+        path = key.delete_prefix(prefix).downcase.gsub(separator, ".")
+        set_path(path, value)
+      end
+    end
+
     def to_h
       confg_data.transform_values do |v|
         v.is_a?(self.class) ? v.to_h : v
