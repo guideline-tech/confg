@@ -135,4 +135,61 @@ class ConfgTest < Minitest::Test
     ENV.delete("CONFG_API__KEYS__GOOGLE")
   end
 
+  def test_merge_preserves_sibling_keys_at_nested_level
+    # Set up existing nested config
+    config.set("database", { "host" => "original_host", "port" => "5432" })
+
+    # Merge only overrides one key
+    config.merge({ "database" => { "host" => "new_host" } })
+
+    # Both keys should exist - port should NOT be clobbered
+    assert_equal "new_host", config.database.host
+    assert_equal "5432", config.database.port
+  end
+
+  def test_merge_preserves_deeply_nested_sibling_keys
+    # Set up existing deeply nested config
+    config.set("api", { "keys" => { "google" => "g123", "stripe" => "s456" } })
+
+    # Merge only overrides one nested key
+    config.merge({ "api" => { "keys" => { "google" => "new_google_key" } } })
+
+    # stripe should NOT be clobbered
+    assert_equal "new_google_key", config.api.keys.google
+    assert_equal "s456", config.api.keys.stripe
+  end
+
+  def test_load_env_preserves_existing_yaml_config
+    # Load YAML config first (has foo and env_setting)
+    config.load_yaml("example.yml")
+    assert_equal "foo", config.foo
+    assert_equal "setting_test", config.env_setting
+
+    # Override only one key via ENV
+    ENV["CONFG_FOO"] = "overridden_foo"
+    config.load_env
+
+    # foo should be overridden, env_setting should be preserved
+    assert_equal "overridden_foo", config.foo
+    assert_equal "setting_test", config.env_setting
+  ensure
+    ENV.delete("CONFG_FOO")
+  end
+
+  def test_load_env_preserves_nested_sibling_keys
+    # Set up existing nested config
+    config.set("database", { "host" => "yaml_host", "port" => "5432", "name" => "mydb" })
+
+    # Override only host via ENV
+    ENV["CONFG_DATABASE__HOST"] = "env_host"
+    config.load_env
+
+    # host overridden, port and name preserved
+    assert_equal "env_host", config.database.host
+    assert_equal "5432", config.database.port
+    assert_equal "mydb", config.database.name
+  ensure
+    ENV.delete("CONFG_DATABASE__HOST")
+  end
+
 end
