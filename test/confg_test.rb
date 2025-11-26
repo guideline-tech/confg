@@ -92,4 +92,61 @@ class ConfgTest < Minitest::Test
     assert_equal %w[test--/ foobar--/Users/x/], ::Confg.cache.keys
   end
 
+  def test_set_path_sets_top_level_value
+    config.set_path("foo", "bar")
+    assert_equal "bar", config.foo
+  end
+
+  def test_set_path_sets_nested_value
+    config.set_path("database.host", "localhost")
+    assert_equal "localhost", config.database.host
+  end
+
+  def test_set_path_sets_deeply_nested_value
+    config.set_path("api.keys.google", "xyz123")
+    assert_equal "xyz123", config.api.keys.google
+  end
+
+  def test_get_path_retrieves_nested_value
+    config.set_path("database.host", "localhost")
+    assert_equal "localhost", config.get_path("database.host")
+  end
+
+  def test_get_path_returns_nil_for_missing_path
+    assert_nil config.get_path("missing.path")
+  end
+
+  def test_load_env_applies_env_vars
+    ENV["CONFG_DATABASE__HOST"] = "envhost"
+    ENV["CONFG_DATABASE__PORT"] = "5432"
+
+    config.load_env
+
+    assert_equal "envhost", config.database.host
+    assert_equal "5432", config.database.port
+  ensure
+    ENV.delete("CONFG_DATABASE__HOST")
+    ENV.delete("CONFG_DATABASE__PORT")
+  end
+
+  def test_load_env_with_custom_prefix
+    ENV["MYAPP_API__KEY"] = "secret"
+
+    config.load_env(prefix: "MYAPP_")
+
+    assert_equal "secret", config.api.key
+  ensure
+    ENV.delete("MYAPP_API__KEY")
+  end
+
+  def test_load_env_ignores_unrelated_vars
+    ENV["OTHER_VAR"] = "ignored"
+
+    config.load_env
+
+    assert_raises(KeyError) { config.other_var }
+  ensure
+    ENV.delete("OTHER_VAR")
+  end
+
 end
