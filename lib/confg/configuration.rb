@@ -32,6 +32,25 @@ module Confg
     end
     alias merge! merge
 
+    def load_env(prefix: "CONFG_", separator: "__")
+      overrides = {}
+
+      ENV.each do |key, value|
+        next unless key.start_with?(prefix)
+
+        segments = key.delete_prefix(prefix).downcase.split(separator)
+
+        # Build nested hash: ["database", "host"] => { "database" => { "host" => value } }
+        current = overrides
+        segments[0...-1].each do |segment|
+          current = (current[segment] ||= {})
+        end
+        current[segments.last] = value
+      end
+
+      merge(overrides)
+    end
+
     def to_h
       confg_data.transform_values do |v|
         v.is_a?(self.class) ? v.to_h : v

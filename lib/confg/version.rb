@@ -3,7 +3,7 @@
 module Confg
 
   MAJOR       = 3
-  MINOR       = 2
+  MINOR       = 3
   PATCH       = 0
   PRERELEASE  = nil
 
