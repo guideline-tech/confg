@@ -92,4 +92,47 @@ class ConfgTest < Minitest::Test
     assert_equal %w[test--/ foobar--/Users/x/], ::Confg.cache.keys
   end
 
+  def test_load_env_applies_env_vars
+    ENV["CONFG_DATABASE__HOST"] = "envhost"
+    ENV["CONFG_DATABASE__PORT"] = "5432"
+
+    config.load_env
+
+    assert_equal "envhost", config.database.host
+    assert_equal "5432", config.database.port
+  ensure
+    ENV.delete("CONFG_DATABASE__HOST")
+    ENV.delete("CONFG_DATABASE__PORT")
+  end
+
+  def test_load_env_with_custom_prefix
+    ENV["MYAPP_API__KEY"] = "secret"
+
+    config.load_env(prefix: "MYAPP_")
+
+    assert_equal "secret", config.api.key
+  ensure
+    ENV.delete("MYAPP_API__KEY")
+  end
+
+  def test_load_env_ignores_unrelated_vars
+    ENV["OTHER_VAR"] = "ignored"
+
+    config.load_env
+
+    assert_raises(KeyError) { config.other_var }
+  ensure
+    ENV.delete("OTHER_VAR")
+  end
+
+  def test_load_env_deeply_nested
+    ENV["CONFG_API__KEYS__GOOGLE"] = "xyz123"
+
+    config.load_env
+
+    assert_equal "xyz123", config.api.keys.google
+  ensure
+    ENV.delete("CONFG_API__KEYS__GOOGLE")
+  end
+
 end
