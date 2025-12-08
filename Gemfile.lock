@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    confg (3.2.0)
+    confg (3.3.0)
 
 GEM
   remote: https://rubygems.org/
@@ -22,4 +22,4 @@ DEPENDENCIES
   rake
 
 BUNDLED WITH
-   2.7.2
+  4.0.0
