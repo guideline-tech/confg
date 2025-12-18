@@ -7,7 +7,9 @@ GEM
   remote: https://rubygems.org/
   specs:
     byebug (12.0.0)
-    minitest (5.27.0)
+    minitest (6.0.0)
+      prism (~> 1.5)
+    prism (1.6.0)
     rake (13.3.1)
 
 PLATFORMS
@@ -18,7 +20,7 @@ DEPENDENCIES
   bundler
   byebug
   confg!
-  minitest (~> 5.0)
+  minitest (~> 6.0)
   rake
 
 BUNDLED WITH
