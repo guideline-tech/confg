@@ -8,8 +8,12 @@ GEM
   specs:
     byebug (13.0.0)
       reline (>= 0.6.0)
+    drb (2.2.3)
     io-console (0.8.2)
-    minitest (5.27.0)
+    minitest (6.0.2)
+      drb (~> 2.0)
+      prism (~> 1.5)
+    prism (1.9.0)
     rake (13.3.1)
     reline (0.6.3)
       io-console (~> 0.5)
@@ -22,7 +26,7 @@ DEPENDENCIES
   bundler
   byebug
   confg!
-  minitest (~> 5.0)
+  minitest (~> 6.0)
   rake
 
 BUNDLED WITH
