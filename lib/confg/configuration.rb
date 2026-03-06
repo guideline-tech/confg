@@ -128,10 +128,10 @@ module Confg
       return set(key[0...-1], args[0]) if key.end_with?("=")
       return fetch(key) if key?(key)
 
-      begin
+      if confg_data.respond_to?(key)
         confg_data.send(key, *args, **kwargs, &block)
-      rescue NoMethodError => e
-        raise KeyError, "Unrecognized key `#{key}`", e.backtrace
+      else
+        raise KeyError, "Unrecognized key `#{key}`"
       end
     end
 

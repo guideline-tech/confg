@@ -35,6 +35,21 @@ class ConfgTest < Minitest::Test
     end
   end
 
+  def test_no_method_error_inside_block_is_not_swallowed
+    # Regression test: NoMethodError raised inside a block passed to a delegated
+    # method should propagate as NoMethodError, not be swallowed and re-raised as KeyError
+    config.foo = "foo_value"
+    config.bar = "bar_value"
+
+    error = assert_raises NoMethodError do
+      config.each do |_key, _val|
+        nil.nonexistent_method
+      end
+    end
+
+    assert_match(/nonexistent_method/, error.message)
+  end
+
   def test_hash_methods_are_accessible
     config.foo = "foo_value"
     config.bar = "bar_value"
