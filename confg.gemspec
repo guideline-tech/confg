@@ -11,22 +11,27 @@ Gem::Specification.new do |spec|
   spec.email         = ["mike@mnelson.io"]
   spec.description   = "Config the pipes"
   spec.summary       = "Sets shared variables for applications"
-  spec.homepage      = "https://github.com/guideline-tech/confg"
   spec.license       = "MIT"
+  spec.required_ruby_version = ">= 3.3.0"
 
-  # Specify which files should be added to the gem when it is released.
+  spec.metadata["allowed_push_host"] = "https://rubygems.org"
+
+  github_uri = "https://github.com/guideline-tech/confg"
+
+  spec.homepage = github_uri
+  spec.metadata["homepage_uri"] = spec.homepage
+  spec.metadata["source_code_uri"] = github_uri
+  spec.metadata["changelog_uri"] = "#{github_uri}/releases"
+  spec.metadata["github_repo"] = github_uri
+  spec.metadata["rubygems_mfa_required"] = "true"
+
   spec.files = Dir["lib/**/*"] + Dir["*.gemspec"]
 
   spec.executables   = spec.files.grep(%r{^bin/}).map { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.metadata["allowed_push_host"] = "https://rubygems.org"
-  spec.metadata["rubygems_mfa_required"] = "true"
-
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "byebug"
   spec.add_development_dependency "minitest", "~> 6.0"
   spec.add_development_dependency "rake"
-
-  spec.required_ruby_version = ">= 3.3.0"
 end
