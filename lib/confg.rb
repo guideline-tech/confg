@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "pathname"
+
 require "confg/version"
 require "confg/configuration"
 require "confg/erb_context"
