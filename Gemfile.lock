@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    confg (3.4.2)
+    confg (3.5.0)
 
 GEM
   remote: https://rubygems.org/
@@ -32,7 +32,7 @@ DEPENDENCIES
 CHECKSUMS
   bundler (4.0.21) sha256=7cbf5499b426076aa16c8d28a59e4c2c3aad5a438402abcd961f0119f29f1dd0
   byebug (13.0.0) sha256=d2263efe751941ca520fa29744b71972d39cbc41839496706f5d9b22e92ae05d
-  confg (3.4.2)
+  confg (3.5.0)
   drb (2.2.3) sha256=0b00d6fdb50995fe4a45dea13663493c841112e4068656854646f418fda13373
   io-console (0.9.4) sha256=a403304f32928ee85e56d457b4612ca43f2703b561a3258844992bd24085fbb1
   minitest (6.0.6) sha256=153ea36d1d987a62942382b61075745042a2b3123b1cd48f4c3675af9cc7d6f1
