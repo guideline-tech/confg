@@ -7,8 +7,8 @@ require "confg/version"
 Gem::Specification.new do |spec|
   spec.name          = "confg"
   spec.version       = Confg::VERSION
-  spec.authors       = ["Mike Nelson"]
-  spec.email         = ["mike@mnelson.io"]
+  spec.authors       = ["Gusto"]
+  spec.email         = ["gusto-opensource-buildkite@gusto.com"]
   spec.description   = "Config the pipes"
   spec.summary       = "Sets shared variables for applications"
   spec.license       = "MIT"
